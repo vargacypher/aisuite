@@ -20,6 +20,9 @@ anthropic = "^0.30.1"
 notebook = "^7.2.1"
 ollama = "^0.2.1"
 mistralai = "^0.4.2"
+chromadb = "^0.5.4"
+sentence-transformers = "^3.0.1"
+datasets = "^2.20.0"
 
 [build-system]
 requires = ["poetry-core"]
