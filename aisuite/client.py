@@ -26,6 +26,27 @@ class Client:
         self._chat = None
         self._initialize_providers()
 
+    def __call__(self, prompt: str, model: str, system_message: str = None, **kwargs):
+        """
+        Call the client directly with a prompt and model.
+
+        Args:
+            prompt (str): The user's prompt or question.
+            model (str): The model to use in the format "provider:model".
+            system_message (str, optional): A system message to set the context.
+            **kwargs: Additional arguments to pass to the chat completion.
+
+        Returns:
+            The response from the AI model.
+        """
+        messages = []
+        if system_message:
+            messages.append({"role": "system", "content": system_message})
+        messages.append({"role": "user", "content": prompt})
+
+        response = self.chat.completions.create(model, messages, **kwargs)
+        return response.choices[0].message.content
+
     def _initialize_providers(self):
         """Helper method to initialize or update providers."""
         for provider_key, config in self.provider_configs.items():

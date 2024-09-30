@@ -171,6 +171,75 @@ class TestClient(unittest.TestCase):
             "Invalid model format. Expected 'provider:model'", str(context.exception)
         )
 
+    def create_mock_provider_response(self, expected_response):
+        """
+        Helper method to create a mock provider response.
+        """
+        mock_response = unittest.mock.Mock()
+        mock_response.choices = [unittest.mock.Mock()]
+        mock_response.choices[0].message.content = expected_response
+        return mock_response
+
+    @patch("aisuite.providers.openai_provider.OpenAIProvider.chat_completions_create")
+    def test_client_call_method(self, mock_openai):
+        expected_response = "expected-text-response"
+        provider_response = self.create_mock_provider_response(expected_response)
+        mock_openai.return_value = provider_response
+
+        config = {
+            ProviderNames.OPENAI: {"api_key": "test_openai_api_key"},
+        }
+
+        new_client = Client(config)
+
+        # Test __call__ method (without system message)
+        response = new_client("test-user-prompt", "openai:gpt-3.5-turbo")
+        self.assertEqual(response, expected_response)
+        mock_openai.assert_called_once()
+
+        mock_openai.reset_mock()
+
+        # Test __call__ method (with system message)
+        response = new_client(
+            "test-user-prompt",
+            "openai:gpt-3.5-turbo",
+            system_message="You are a helpful assistant.",
+        )
+        self.assertEqual(response, expected_response)
+        mock_openai.assert_called_once()
+
+        # Ensure the correct messages were passed to the provider
+        called_messages = mock_openai.call_args[0][1]
+        self.assertEqual(len(called_messages), 2)
+        self.assertEqual(called_messages[0]["role"], "system")
+        self.assertEqual(called_messages[0]["content"], "You are a helpful assistant.")
+        self.assertEqual(called_messages[1]["role"], "user")
+        self.assertEqual(called_messages[1]["content"], "test-user-prompt")
+
+    @patch("aisuite.providers.openai_provider.OpenAIProvider.chat_completions_create")
+    def test_client_call_method_with_kwargs(self, mock_openai):
+        expected_response = "expected-text-response"
+        provider_response = self.create_mock_provider_response(expected_response)
+        mock_openai.return_value = provider_response
+
+        config = {
+            ProviderNames.OPENAI: {"api_key": "test_openai_api_key"},
+        }
+
+        new_client = Client(config)
+
+        # Test __call__ method with additional kwargs
+        response = new_client(
+            "test-user-prompt", "openai:gpt-3.5-turbo", max_tokens=100, temperature=0.7
+        )
+        self.assertEqual(response, expected_response)
+        mock_openai.assert_called_once()
+
+        # Ensure the additional kwargs were passed to the provider
+        _, kwargs = mock_openai.call_args
+        self.assertEqual(kwargs.get("max_tokens"), 100)
+        self.assertEqual(kwargs.get("temperature"), 0.7)
+
 
 if __name__ == "__main__":
     unittest.main()
