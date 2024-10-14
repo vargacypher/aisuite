@@ -4,14 +4,12 @@
 
 Simple, unified interface to multiple Generative AI providers.
 
-`aisuite` is an tool designed for researchers who need to evaluate and compare the responses of
+`aisuite` is a tool designed for researchers who need to evaluate and compare the responses of
 multiple LLMs through a standardized interface. Based on the OpenAI interface standard, `aisuite`
 makes it easy to interact with the most popular LLMs and compare the results of their chat based
 functionality, with support for more interfaces coming in the near future.
 
-Currently supported providers are -
-OpenAI, Anthropic, Azure, Google, AWS, Groq, Mistral, HuggingFace and Ollama.
-Internally, aisuite uses either the HTTP endpoint or the SDK for making calls to the provider.
+Currently supported providers are OpenAI, Anthropic, Azure, Google, AWS, Groq, Mistral, HuggingFace, Ollama, Fireworks and Together. Internally, aisuite uses either the HTTP endpoint or the SDK for making calls to the providers.
 
 ## Installation
 
