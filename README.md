@@ -112,5 +112,7 @@ A convention-based approach is followed for loading providers, which relies on s
   in providers/openai_provider.py
 
 This convention simplifies the addition of new providers and ensures consistency across provider implementations.
+
 ---
+
 Join the conversation on [Discord server](https://discord.gg/T6Nvn8ExSb)
