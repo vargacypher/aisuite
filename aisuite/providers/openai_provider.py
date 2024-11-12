@@ -26,8 +26,12 @@ class OpenaiProvider(Provider):
     def chat_completions_create(self, model, messages, **kwargs):
         # Any exception raised by OpenAI will be returned to the caller.
         # Maybe we should catch them and raise a custom LLMError.
-        return self.client.chat.completions.create(
+        response = self.client.chat.completions.create(
             model=model,
             messages=messages,
             **kwargs  # Pass any additional arguments to the OpenAI API
         )
+
+        # TODO: Handle tool calls
+
+        return response

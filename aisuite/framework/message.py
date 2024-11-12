@@ -4,3 +4,7 @@
 class Message:
     def __init__(self):
         self.content = None
+        self.tool_calls = None
+        self.role = None
+        self.refusal = None
+        self.function_call = None

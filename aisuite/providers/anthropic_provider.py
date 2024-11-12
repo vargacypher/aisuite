@@ -27,14 +27,43 @@ class AnthropicProvider(Provider):
         if "max_tokens" not in kwargs:
             kwargs["max_tokens"] = DEFAULT_MAX_TOKENS
 
-        return self.normalize_response(
-            self.client.messages.create(
-                model=model, system=system_message, messages=messages, **kwargs
-            )
+        # TODO: Handle tool calls. Convert from OpenAI tool calls to Anthropic tool calls.
+        if "tools" in kwargs:
+            kwargs["tools"] = convert_openai_tools_to_anthropic(kwargs["tools"])
+
+        response = self.client.messages.create(
+            model=model, system=system_message, messages=messages, **kwargs
         )
+        print(response)
+        return self.normalize_response(response)
 
     def normalize_response(self, response):
         """Normalize the response from the Anthropic API to match OpenAI's response format."""
         normalized_response = ChatCompletionResponse()
         normalized_response.choices[0].message.content = response.content[0].text
         return normalized_response
+
+
+def convert_openai_tools_to_anthropic(openai_tools):
+    anthropic_tools = []
+
+    for tool in openai_tools:
+        # Only handle function-type tools from OpenAI
+        if tool.get("type") != "function":
+            continue
+
+        function = tool["function"]
+
+        anthropic_tool = {
+            "name": function["name"],
+            "description": function["description"],
+            "input_schema": {
+                "type": "object",
+                "properties": function["parameters"]["properties"],
+                "required": function["parameters"].get("required", []),
+            },
+        }
+
+        anthropic_tools.append(anthropic_tool)
+
+    return anthropic_tools

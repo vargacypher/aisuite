@@ -1,6 +1,7 @@
 from typing import Callable, Dict, Any, Type, Optional
 from pydantic import BaseModel, create_model, Field, ValidationError
 import inspect
+import json
 
 
 class ToolManager:
@@ -115,31 +116,47 @@ class ToolManager:
             for tool in self._tools.values()
         ]
 
-    def execute_tool(self, tool_call: Dict[str, Any]) -> tuple:
-        """Executes a registered tool based on the tool call from the model."""
-        tool_name = tool_call.get("name")
-        if tool_name not in self._tools:
-            raise ValueError(f"Tool '{tool_name}' not registered.")
+    def execute_tool(self, tool_calls) -> tuple[list, list]:
+        """Executes registered tools based on the tool calls from the model.
 
-        tool = self._tools[tool_name]
-        tool_func = tool["function"]
-        param_model = tool["param_model"]
-        arguments = tool_call.get("arguments", {})
+        Args:
+            tool_calls: List of tool calls from the model
 
-        # Validate and parse the arguments with Pydantic if a model exists
-        try:
-            validated_args = param_model(**arguments)
-            result = tool_func(
-                **validated_args.dict()
-            )  # Execute the tool with validated args
-            result_message = {
-                "role": "assistant",
-                "content": f"Result from {tool_name}: {result}",
-            }
-            return result, result_message
-        except ValidationError as e:
-            error_message = f"Error in tool '{tool_name}' parameters: {e}"
-            return {"error": error_message}, {
-                "role": "assistant",
-                "content": error_message,
-            }
+        Returns:
+            List of tuples containing (result, result_message) for each tool call
+        """
+        results = []
+        messages = []
+
+        # Handle single tool call or list of tool calls
+        if not isinstance(tool_calls, list):
+            tool_calls = [tool_calls]
+
+        for tool_call in tool_calls:
+            tool_name = tool_call.function.name
+            arguments = json.loads(tool_call.function.arguments)
+
+            if tool_name not in self._tools:
+                raise ValueError(f"Tool '{tool_name}' not registered.")
+
+            tool = self._tools[tool_name]
+            tool_func = tool["function"]
+            param_model = tool["param_model"]
+
+            # Validate and parse the arguments with Pydantic if a model exists
+            try:
+                validated_args = param_model(**arguments)
+                result = tool_func(**validated_args.model_dump())
+                results.append(result)
+                messages.append(
+                    {
+                        "role": "tool",
+                        "name": tool_name,
+                        "content": json.dumps(result),
+                        "tool_call_id": tool_call.id,  # Include the tool call ID in the response
+                    }
+                )
+            except ValidationError as e:
+                raise ValueError(f"Error in tool '{tool_name}' parameters: {e}")
+
+        return results, messages
