@@ -31,28 +31,50 @@ class ToolManager:
         self, func: Callable, param_model: Type[BaseModel]
     ) -> Dict[str, Any]:
         """Convert the function and its Pydantic model to a unified tool specification."""
-        properties = {
-            field.alias: {
-                "type": str(field.type_),
-                "description": field.field_info.description or "",
-                "default": field.default if field.default is not None else None,
-            }
-            for field in param_model.model_fields.values()
-        }
+        type_mapping = {str: "string", int: "integer", float: "number", bool: "boolean"}
 
-        required_fields = [
-            field.alias
-            for field in param_model.model_fields.values()
-            if field.default is None
-        ]
+        properties = {}
+        for field_name, field in param_model.model_fields.items():
+            field_type = field.annotation
+
+            # Handle enum types
+            if hasattr(field_type, "__members__"):  # Check if it's an enum
+                enum_values = [
+                    member.value if hasattr(member, "value") else member.name
+                    for member in field_type
+                ]
+                properties[field_name] = {
+                    "type": "string",
+                    "enum": enum_values,
+                    "description": field.description or "",
+                }
+                # Convert enum default value to string if it exists
+                if str(field.default) != "PydanticUndefined":
+                    properties[field_name]["default"] = (
+                        field.default.value
+                        if hasattr(field.default, "value")
+                        else field.default
+                    )
+            else:
+                properties[field_name] = {
+                    "type": type_mapping.get(field_type, str(field_type)),
+                    "description": field.description or "",
+                }
+                # Add default if it exists and isn't PydanticUndefined
+                if str(field.default) != "PydanticUndefined":
+                    properties[field_name]["default"] = field.default
 
         return {
             "name": func.__name__,
-            "description": func.__doc__ or "No description provided.",
+            "description": func.__doc__ or "",
             "parameters": {
                 "type": "object",
                 "properties": properties,
-                "required": required_fields,
+                "required": [
+                    name
+                    for name, field in param_model.model_fields.items()
+                    if field.is_required and str(field.default) == "PydanticUndefined"
+                ],
             },
         }
 
@@ -121,10 +143,3 @@ class ToolManager:
                 "role": "assistant",
                 "content": error_message,
             }
-
-
-# Example tool function with all parameters having type annotations
-def get_current_temperature(location: str, unit: str = "Celsius"):
-    """Gets the current temperature for a specific location and unit."""
-    # Simulate fetching temperature from an API
-    return {"location": location, "unit": unit, "temperature": 72}
