@@ -1,7 +1,7 @@
 from aisuite.framework.message import Message
+from typing import Literal, Optional
 
 
 class Choice:
-    def __init__(self):
-        self.finish_reason = None  # "stop", "tool_calls"
-        self.message = Message()
+    finish_reason: Optional[Literal["stop", "tool_calls"]]
+    message: Optional[Message]
