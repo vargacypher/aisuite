@@ -6,6 +6,10 @@ from aisuite.framework.message import Message
 from aisuite.provider import Provider
 
 
+# Implementation of Mistral provider.
+# Mistral's message format is same as OpenAI's. Just different class names, but fully cross-compatible.
+# Links:
+# https://docs.mistral.ai/capabilities/function_calling/
 class MistralProvider(Provider):
     def __init__(self, **config):
         """
