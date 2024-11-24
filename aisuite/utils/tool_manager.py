@@ -87,6 +87,9 @@ class ToolManager:
         fields = {}
         required_fields = []
 
+        # Get function's docstring
+        docstring = inspect.getdoc(func) or " "
+
         for param_name, param in signature.parameters.items():
             # Check if a type annotation is missing
             if param.annotation == inspect._empty:
@@ -107,6 +110,10 @@ class ToolManager:
 
         # Convert inferred model to a tool spec format
         tool_spec = self._convert_to_tool_spec(func, param_model)
+
+        # Update the tool spec with the docstring
+        tool_spec["description"] = docstring
+
         return tool_spec, param_model
 
     def _convert_to_openai_format(self) -> list:
