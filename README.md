@@ -79,7 +79,7 @@ aisuite is released under the MIT License. You are free to use, modify, and dist
 
 ## Contributing
 
-If you would like to contribute, please read our [Contributing Guide](CONTRIBUTING.md) and join our [Discord](https://discord.gg/T6Nvn8ExSb) server!
+If you would like to contribute, please read our [Contributing Guide](https://github.com/andrewyng/aisuite/blob/main/CONTRIBUTING.md) and join our [Discord](https://discord.gg/T6Nvn8ExSb) server!
 
 ## Adding support for a provider
 We have made easy for a provider or volunteer to add support for a new platform.
