@@ -16,8 +16,12 @@ class TestClient(unittest.TestCase):
     @patch(
         "aisuite.providers.fireworks_provider.FireworksProvider.chat_completions_create"
     )
+    @patch(
+        "aisuite.providers.nebius_provider.NebiusProvider.chat_completions_create"
+    )
     def test_client_chat_completions(
         self,
+        mock_nebius,
         mock_fireworks,
         mock_google,
         mock_anthropic,
@@ -36,6 +40,7 @@ class TestClient(unittest.TestCase):
         mock_mistral.return_value = "Mistral Response"
         mock_google.return_value = "Google Response"
         mock_fireworks.return_value = "Fireworks Response"
+        mock_nebius.return_value = "Nebius Response"
 
         # Provider configurations
         provider_configs = {
@@ -63,6 +68,9 @@ class TestClient(unittest.TestCase):
             },
             "fireworks": {
                 "api_key": "fireworks-api-key",
+            },
+            "nebius": {
+                "api_key": "nebius-api-key",
             },
         }
 
@@ -133,6 +141,14 @@ class TestClient(unittest.TestCase):
         )
         self.assertEqual(fireworks_response, "Fireworks Response")
         mock_fireworks.assert_called_once()
+
+        # Test Nebius model
+        nebius_model = "nebius" + ":" + "nebius-model"
+        nebius_response = client.chat.completions.create(
+            nebius_model, messages=messages
+        )
+        self.assertEqual(nebius_response, "Nebius Response")
+        mock_nebius.assert_called_once()
 
         # Test that new instances of Completion are not created each time we make an inference call.
         compl_instance = client.chat.completions
