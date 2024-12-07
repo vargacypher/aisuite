@@ -18,7 +18,7 @@ After setting up your model, you'll need to gather the following information:
 Set the following environment variables to make authentication and requests easy:
 
 ```shell
-export HUGGINGFACE_TOKEN="your-api-token"
+export HF_TOKEN="your-api-token"
 ```
 
 ## Create a Chat Completion
