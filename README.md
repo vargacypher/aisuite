@@ -1,5 +1,6 @@
 # aisuite
 
+[![PyPI](https://img.shields.io/pypi/v/aisuite)](https://pypi.org/project/aisuite/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 Simple, unified interface to multiple Generative AI providers.
@@ -7,7 +8,7 @@ Simple, unified interface to multiple Generative AI providers.
 `aisuite` makes it easy for developers to use multiple LLM through a standardized interface. Using an interface similar to OpenAI's, `aisuite` makes it easy to interact with the most popular LLMs and compare the results. It is a thin wrapper around python client libraries, and allows creators to seamlessly swap out and test responses from different LLM providers without changing their code. Today, the library is primarily focussed on chat completions. We will expand it cover more use cases in near future.
 
 Currently supported providers are -
-OpenAI, Anthropic, Azure, Google, AWS, Groq, Mistral, HuggingFace and Ollama.
+OpenAI, Anthropic, Azure, Google, AWS, Groq, Mistral, HuggingFace Ollama and Sambanova.
 To maximize stability, `aisuite` uses either the HTTP endpoint or the SDK for making calls to the provider.
 
 ## Installation
@@ -79,7 +80,7 @@ aisuite is released under the MIT License. You are free to use, modify, and dist
 
 ## Contributing
 
-If you would like to contribute, please read our [Contributing Guide](CONTRIBUTING.md) and join our [Discord](https://discord.gg/T6Nvn8ExSb) server!
+If you would like to contribute, please read our [Contributing Guide](https://github.com/andrewyng/aisuite/blob/main/CONTRIBUTING.md) and join our [Discord](https://discord.gg/T6Nvn8ExSb) server!
 
 ## Adding support for a provider
 We have made easy for a provider or volunteer to add support for a new platform.
