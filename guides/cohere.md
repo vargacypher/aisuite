@@ -8,7 +8,7 @@ export CO_API_KEY="your-cohere-api-key"
 
 ## Create a Chat Completion
 
-Install the `openai` Python client:
+Install the `cohere` Python client:
 
 Example with pip:
 ```shell
