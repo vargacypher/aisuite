@@ -1,4 +1,4 @@
-from .message import Message
+from aisuite.framework.message import Message
 from typing import Literal, Optional
 from pydantic import BaseModel
 
