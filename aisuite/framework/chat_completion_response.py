@@ -1,5 +1,5 @@
 from aisuite.framework.choice import Choice
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Literal, Optional, List
 
 
@@ -8,3 +8,6 @@ class ChatCompletionResponse(BaseModel):
 
     choices: List[Choice] = [Choice()]  # Adjust the range as needed for more choices
 
+    model_config = ConfigDict(
+        extra="allow",
+    ) # Some providers return some extra fields in reponse, like Antrophic, wich returns `usage`
