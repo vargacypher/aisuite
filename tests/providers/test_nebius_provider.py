@@ -3,17 +3,43 @@ from unittest.mock import patch, MagicMock
 
 from aisuite.providers.nebius_provider import NebiusProvider
 
+
+@pytest.fixture(autouse=True)
+def set_api_key_env_var(monkeypatch):
+    """Fixture to set environment variables for tests."""
+    monkeypatch.setenv("NEBIUS_API_KEY", "test-api-key")
+
+
 def test_nebius_provider():
     """High-level test that the provider is initialized and chat completions are requested successfully."""
 
-    user_greeting = "We are testing you. Please say 'One two three' and nothing more."
+    user_greeting = "Hello!"
     message_history = [{"role": "user", "content": user_greeting}]
-    selected_model = "Qwen/Qwen2.5-32B-Instruct-fast"
-    chosen_top_p = 0.01
-    response_text_content = "One two three"
+    selected_model = "our-favorite-model"
+    chosen_temperature = 0.75
+    response_text_content = "mocked-text-response-from-model"
 
     provider = NebiusProvider()
-    print(provider.api_key)
-    response = provider.chat_completions_create(model=selected_model, messages=message_history, top_p=chosen_top_p)
+    mock_response = MagicMock()
+    mock_response.choices = [MagicMock()]
+    mock_response.choices[0].message = MagicMock()
+    mock_response.choices[0].message.content = response_text_content
 
-    assert response.choices[0].message.content == response_text_content
+    with patch.object(
+        provider.client.chat.completions,
+        "create",
+        return_value=mock_response,
+    ) as mock_create:
+        response = provider.chat_completions_create(
+            messages=message_history,
+            model=selected_model,
+            temperature=chosen_temperature,
+        )
+
+        mock_create.assert_called_with(
+            messages=message_history,
+            model=selected_model,
+            temperature=chosen_temperature,
+        )
+
+        assert response.choices[0].message.content == response_text_content
