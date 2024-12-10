@@ -2,9 +2,7 @@ from aisuite.provider import Provider
 import os
 from ibm_watsonx_ai import Credentials
 from ibm_watsonx_ai.foundation_models import ModelInference
-from ibm_watsonx_ai.metanames import GenTextParamsMetaNames as GenParams
-
-DEFAULT_TEMPERATURE = 0.7
+from aisuite.framework import ChatCompletionResponse
 
 
 class WatsonxProvider(Provider):
@@ -23,11 +21,19 @@ class WatsonxProvider(Provider):
     def chat_completions_create(self, model, messages, **kwargs):
         model = ModelInference(
             model_id=model,
-            params={
-                GenParams.TEMPERATURE: kwargs.get("temperature", DEFAULT_TEMPERATURE),
-            },
-            credentials=Credentials(api_key=self.api_key, url=self.service_url),
+            credentials=Credentials(
+                api_key=self.api_key,
+                url=self.service_url,
+            ),
             project_id=self.project_id,
         )
 
-        return model.chat(prompt=messages, **kwargs)
+        res = model.chat(messages=messages, params=kwargs)
+        return self.normalize_response(res)
+
+    def normalize_response(self, response):
+        openai_response = ChatCompletionResponse()
+        openai_response.choices[0].message.content = response["choices"][0]["message"][
+            "content"
+        ]
+        return openai_response

@@ -1,8 +1,7 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-from ibm_watsonx_ai import Credentials
-from ibm_watsonx_ai.metanames import GenTextParamsMetaNames as GenParams
+from ibm_watsonx_ai.metanames import GenChatParamsMetaNames as GenChatParams
 
 from aisuite.providers.watsonx_provider import WatsonxProvider
 
@@ -25,10 +24,7 @@ def test_watsonx_provider():
     response_text_content = "mocked-text-response-from-model"
 
     provider = WatsonxProvider()
-    mock_response = MagicMock()
-    mock_response.choices = [MagicMock()]
-    mock_response.choices[0].message = MagicMock()
-    mock_response.choices[0].message.content = response_text_content
+    mock_response = {"choices": [{"message": {"content": response_text_content}}]}
 
     with patch(
         "aisuite.providers.watsonx_provider.ModelInference"
@@ -47,17 +43,17 @@ def test_watsonx_provider():
         mock_model_inference.assert_called_once()
         args, kwargs = mock_model_inference.call_args
         assert kwargs["model_id"] == selected_model
-        assert kwargs["params"] == {GenParams.TEMPERATURE: chosen_temperature}
+        assert kwargs["project_id"] == provider.project_id
 
         # Assert that the credentials have the correct API key and service URL.
         credentials = kwargs["credentials"]
         assert credentials.api_key == provider.api_key
         assert credentials.url == provider.service_url
 
-        # Assert that chat was called with correct history and temperature.
+        # Assert that chat was called with correct history and params
         mock_model.chat.assert_called_once_with(
-            prompt=message_history,
-            temperature=chosen_temperature,
+            messages=message_history,
+            params={GenChatParams.TEMPERATURE: chosen_temperature},
         )
 
         assert response.choices[0].message.content == response_text_content

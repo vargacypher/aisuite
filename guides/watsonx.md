@@ -8,25 +8,25 @@ A a step-by-step guide to set up Watsonx with the `aisuite` library, enabling yo
 
 1. Visit [IBM Watsonx](https://www.ibm.com/watsonx).
 2. Sign up for a new account or log in with your existing IBM credentials.
-3. Once logged in, navigate to the **Watsonx Dashboard**.
+3. Once logged in, navigate to the **Watsonx Dashboard** (<https://dataplatform.cloud.ibm.com>)
 
 ---
 
 ### Step 2: Obtain API Credentials
 
 1. **Generate an API Key**:
-   - Go to the **API Keys** section in your Watsonx account settings.
-   - Click on **Create API Key**.
-   - Provide a name for your API key (e.g., `MyWatsonxKey`).
-   - Click **Generate**, then download or copy the API key. **Keep this key secure!**
+   - Go to IAM > API keys and create a new API key (<https://cloud.ibm.com/iam/overview>)
+   - Copy the API key. This is your `WATSONX_API_KEY`.
 
 2. **Locate the Service URL**:
-   - Go to the **Endpoints** section in the Watsonx dashboard.
-   - Find the URL corresponding to your service and note it. This is your `WATSONX_SERVICE_URL`.
+   - Your service URL is based on the region where your service is hosted.
+   - Pick one from the list here <https://cloud.ibm.com/apidocs/watsonx-ai#endpoint-url>
+   - Copy the service URL. This is your `WATSONX_SERVICE_URL`.
 
 3. **Get the Project ID**:
-   - Navigate to the **Projects** tab in the dashboard.
-   - Select the project you want to use.
+   - Go to the **Watsonx Dashboard** (<https://dataplatform.cloud.ibm.com>)
+   - Under the **Projects** section, If you don't have a sandbox project, create a new project.
+   - Navigate to the **Manage** tab and find the **Project ID**.
    - Copy the **Project ID**. This will serve as your `WATSONX_PROJECT_ID`.
 
 ---
