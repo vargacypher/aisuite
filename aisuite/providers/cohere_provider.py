@@ -28,9 +28,10 @@ class CohereProvider(Provider):
 
         return self.normalize_response(response)
 
-
     def normalize_response(self, response):
         """Normalize the reponse from Cohere API to match OpenAI's response format."""
         normalized_response = ChatCompletionResponse()
-        normalized_response.choices[0].message.content = response.message.content[0].text
+        normalized_response.choices[0].message.content = response.message.content[
+            0
+        ].text
         return normalized_response
