@@ -1,10 +1,10 @@
-from aisuite.framework.message import Message
+from .message import Message
 from typing import Literal, Optional
+from pydantic import BaseModel
 
 
-class Choice:
-    def __init__(self):
-        self.finish_reason: Optional[Literal["stop", "tool_calls"]] = None
-        self.message = Message(
-            content=None, tool_calls=None, role="assistant", refusal=None
-        )
+class Choice(BaseModel):
+    finish_reason: Optional[Literal["stop", "tool_calls"]] = None
+    message: Message = Message(
+        content=None, tool_calls=None, role="assistant", refusal=None
+    )
