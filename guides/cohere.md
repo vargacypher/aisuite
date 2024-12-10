@@ -23,20 +23,22 @@ poetry add cohere
 In your code:
 ```python
 import aisuite as ai
+
 client = ai.Client()
 
+provider = "cohere"
 model_id = "command-r-plus-08-2024"
 
-messages=[
+messages = [
     {"role": "user", "content": "Hi, how are you?"}
-    ]
+]
 
-response = client.chat(
-    model=f"{model_id}",
+response = client.chat.completions.create(
+    model=f"{provider}:{model_id}",
     messages=messages,
 )
 
-print(response)
+print(response.choices[0].message.content)
 ```
 
 Happy coding! If you’d like to contribute, please read our [Contributing Guide](CONTRIBUTING.md).
