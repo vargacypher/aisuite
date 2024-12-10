@@ -1,5 +1,7 @@
 import os
 import cohere
+
+from aisuite.framework import ChatCompletionResponse
 from aisuite.provider import Provider
 
 
@@ -18,8 +20,17 @@ class CohereProvider(Provider):
         self.client = cohere.ClientV2(**config)
 
     def chat_completions_create(self, model, messages, **kwargs):
-        return self.client.chat(
+        response = self.client.chat(
             model=model,
             messages=messages,
             **kwargs  # Pass any additional arguments to the Cohere API
         )
+
+        return self.normalize_response(response)
+
+
+    def normalize_response(self, response):
+        """Normalize the reponse from Cohere API to match OpenAI's response format."""
+        normalized_response = ChatCompletionResponse()
+        normalized_response.choices[0].message.content = response.message.content[0].text
+        return normalized_response
