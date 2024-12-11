@@ -33,6 +33,11 @@ def provider_configs():
         "fireworks": {
             "api_key": "fireworks-api-key",
         },
+        "watsonx": {
+            "service_url": "https://watsonx-service-url.com",
+            "api_key": "watsonx-api-key",
+            "project_id": "watsonx-project-id",
+        },
     }
 
 
@@ -78,6 +83,11 @@ def provider_configs():
             "aisuite.providers.fireworks_provider.FireworksProvider.chat_completions_create",
             "fireworks",
             "fireworks-model",
+        ),
+        (
+            "aisuite.providers.watsonx_provider.WatsonxProvider.chat_completions_create",
+            "watsonx",
+            "watsonx-model",
         ),
     ],
 )
