@@ -2,10 +2,11 @@
 
 These guides give directions for obtaining API keys from different providers. 
 
-Here're the instructions for:
+Here are the instructions for:
 - [Anthropic](anthropic.md) 
 - [AWS](aws.md)
 - [Azure](azure.md) 
+- [Cohere](cohere.md)
 - [Google](google.md)
 - [Hugging Face](huggingface.md)
 - [OpenAI](openai.md)
