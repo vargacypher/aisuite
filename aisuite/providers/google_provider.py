@@ -18,6 +18,7 @@ from aisuite.framework import (
     ChatCompletionResponse,
     ChatCompletionMessageToolCall,
     Function,
+    Message,
 )
 from typing import Any
 
@@ -68,12 +69,7 @@ class GoogleProvider(ProviderInterface):
         transformed_messages = self.transform_roles(messages)
 
         # Convert the messages to the format expected Google
-        final_message_history = self.convert_openai_to_vertex_ai(
-            transformed_messages[:-1]
-        )
-
-        # Get the last message from the transformed messages
-        last_message = transformed_messages[-1]["content"]
+        final_message_history = self.convert_openai_to_vertex_ai(transformed_messages)
 
         model_kwargs = {
             "model_name": model,
@@ -86,8 +82,7 @@ class GoogleProvider(ProviderInterface):
         model = GenerativeModel(**model_kwargs)
 
         # Start a chat with the GenerativeModel and send the last message
-        chat = model.start_chat(history=final_message_history)
-        response = chat.send_message(last_message)
+        response = model.generate_content(final_message_history)
 
         # Convert the response to the format expected by the OpenAI API
         return self.normalize_response(response)
@@ -96,25 +91,60 @@ class GoogleProvider(ProviderInterface):
         """Convert OpenAI messages to Google AI messages."""
         from vertexai.generative_models import Content, Part
 
+        function_calls = {}
         history = []
+
         for message in messages:
+            tool_calls = message.get("tool_calls")
+            if tool_calls:
+                for tool_call in tool_calls:
+                    function_name = tool_call["function"]["name"]
+                    function_args = json.loads(tool_call["function"]["arguments"])
+                    function_calls[function_name] = Part.from_dict(
+                        {
+                            "function_call": {
+                                "name": function_name,
+                                "args": function_args,
+                            }
+                        }
+                    )
+                continue
+
+            if message["role"] == "tool":
+                history.append(
+                    Content(role="model", parts=[function_calls.get(message["name"])])
+                )
+                parts = [
+                    Part.from_function_response(
+                        name=message["name"],
+                        response=json.loads(message["content"]),
+                    )
+                ]
+            else:
+                parts = [Part.from_text(message["content"])]
+
             role = message["role"]
-            content = message["content"]
-            parts = [Part.from_text(content)]
             history.append(Content(role=role, parts=parts))
+
         return history
 
     def transform_roles(self, messages):
         """Transform the roles in the messages based on the provided transformations."""
         openai_roles_to_google_roles = {
             "system": "user",
+            "user": "user",
             "assistant": "model",
+            "tool": "tool",
         }
+        transformed_messages = []
 
         for message in messages:
+            if isinstance(message, Message):
+                message = message.model_dump()
             if role := openai_roles_to_google_roles.get(message["role"], None):
                 message["role"] = role
-        return messages
+                transformed_messages.append(message)
+        return transformed_messages
 
     def normalize_response(self, response: GenerationResponse):
         """Normalize the response from Google AI to match OpenAI's response format."""
@@ -138,14 +168,14 @@ class GoogleProvider(ProviderInterface):
                 for fc in function_calls
             ]
             openai_response.choices[0].finish_reason = "tool_calls"
-            openai_response.choices[0].message.content = ""
             openai_response.choices[0].message.role = "assistant"
             openai_response.choices[0].message.tool_calls = tool_calls
-        else:
-            # Handle regular text response
-            openai_response.choices[0].message.content = (
-                candidate.content.parts[0].text if candidate.content.parts else ""
-            )
+
+        try:
+            openai_response.choices[0].message.content = candidate.content.parts[0].text
+        except AttributeError:
+            openai_response.choices[0].message.content = ""
+
         return openai_response
 
     def _extract_tool_calls(self, response: GenerationResponse) -> list[dict]:

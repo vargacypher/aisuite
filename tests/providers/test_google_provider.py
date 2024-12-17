@@ -33,6 +33,7 @@ def test_vertex_interface():
     interface = GoogleProvider()
     mock_response = MagicMock()
     mock_response.candidates = [MagicMock()]
+    mock_response.candidates[0].content.parts = [MagicMock()]
     mock_response.candidates[0].content.parts[0].text = response_text_content
 
     with patch(
@@ -40,9 +41,7 @@ def test_vertex_interface():
     ) as mock_generative_model:
         mock_model = MagicMock()
         mock_generative_model.return_value = mock_model
-        mock_chat = MagicMock()
-        mock_model.start_chat.return_value = mock_chat
-        mock_chat.send_message.return_value = mock_response
+        mock_model.generate_content.return_value = mock_response
 
         response = interface.chat_completions_create(
             messages=message_history,
@@ -56,14 +55,10 @@ def test_vertex_interface():
         assert kwargs["model_name"] == selected_model
         assert "generation_config" in kwargs
 
-        # Assert that start_chat was called with correct history.
-        mock_model.start_chat.assert_called_once()
-        _chat_args, chat_kwargs = mock_model.start_chat.call_args
-        assert "history" in chat_kwargs
-        assert isinstance(chat_kwargs["history"], list)
-
-        # Assert that send_message was called with the last message.
-        mock_chat.send_message.assert_called_once_with(user_greeting)
+        # Assert that generate_content was called with correct history.
+        mock_model.generate_content.assert_called_once()
+        _chat_args, chat_kwargs = mock_model.generate_content.call_args
+        assert isinstance(_chat_args[0], list)
 
         # Assert that the response is in the correct format.
         assert response.choices[0].message.content == response_text_content
@@ -128,6 +123,7 @@ def test_tool_calls():
     interface = GoogleProvider()
     mock_response = MagicMock()
     mock_response.candidates = [MagicMock()]
+    mock_response.candidates[0].content.parts = [MagicMock()]
     mock_response.candidates[0].content.parts[0].text = response_text_content
 
     # Create a mock function call with the necessary attributes
@@ -142,9 +138,7 @@ def test_tool_calls():
     ) as mock_generative_model:
         mock_model = MagicMock()
         mock_generative_model.return_value = mock_model
-        mock_chat = MagicMock()
-        mock_model.start_chat.return_value = mock_chat
-        mock_chat.send_message.return_value = mock_response
+        mock_model.generate_content.return_value = mock_response
 
         response = interface.chat_completions_create(
             messages=message_history,
@@ -154,7 +148,7 @@ def test_tool_calls():
         )
 
         # Assert that the response is in the correct format.
-        assert response.choices[0].message.content == ""
+        assert response.choices[0].message.content == response_text_content
         assert response.choices[0].finish_reason == "tool_calls"
         assert len(response.choices[0].message.tool_calls) == 1
         assert response.choices[0].message.tool_calls[0].function.name == "example_tool"
