@@ -69,7 +69,7 @@ class GoogleProvider(ProviderInterface):
         transformed_messages = self.transform_roles(messages)
 
         # Convert the messages to the format expected Google
-        final_message_history = self.convert_openai_to_vertex_ai(transformed_messages)
+        messages_history = self.convert_openai_to_vertex_ai(transformed_messages)
 
         model_kwargs = {
             "model_name": model,
@@ -81,8 +81,7 @@ class GoogleProvider(ProviderInterface):
 
         model = GenerativeModel(**model_kwargs)
 
-        # Start a chat with the GenerativeModel and send the last message
-        response = model.generate_content(final_message_history)
+        response = model.generate_content(messages_history)
 
         # Convert the response to the format expected by the OpenAI API
         return self.normalize_response(response)
