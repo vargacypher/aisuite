@@ -33,6 +33,9 @@ def provider_configs():
         "fireworks": {
             "api_key": "fireworks-api-key",
         },
+        "nebius": {
+            "api_key": "nebius-api-key",
+        },
         "watsonx": {
             "service_url": "https://watsonx-service-url.com",
             "api_key": "watsonx-api-key",
@@ -83,6 +86,11 @@ def provider_configs():
             "aisuite.providers.fireworks_provider.FireworksProvider.chat_completions_create",
             "fireworks",
             "fireworks-model",
+        ),
+        (
+            "aisuite.providers.nebius_provider.NebiusProvider.chat_completions_create",
+            "nebius",
+            "nebius-model",
         ),
         (
             "aisuite.providers.watsonx_provider.WatsonxProvider.chat_completions_create",
