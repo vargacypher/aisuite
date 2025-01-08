@@ -3,7 +3,7 @@ import os
 from aisuite.provider import Provider
 
 
-class OpenaiProvider(Provider):
+class DeepseekProvider(Provider):
     def __init__(self, **config):
         """
         Initialize the DeepSeek provider with the given configuration.
