@@ -15,7 +15,7 @@ class DeepseekProvider(Provider):
             raise ValueError(
                 "DeepSeek API key is missing. Please provide it in the config or set the OPENAI_API_KEY environment variable."
             )
-        config["base_url"]="https://api.deepseek.com"
+        config["base_url"] = "https://api.deepseek.com"
 
         # NOTE: We could choose to remove above lines for api_key since OpenAI will automatically
         # infer certain values from the environment variables.
