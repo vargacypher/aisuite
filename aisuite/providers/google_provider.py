@@ -189,8 +189,8 @@ class GoogleMessageConverter:
         return openai_response
 
 
-class GoogleProvider(ProviderInterface):
-    """Implements the ProviderInterface for interacting with Google's Vertex AI."""
+class GoogleProvider:
+    """Implements the Provider Interface for interacting with Google's Vertex AI."""
 
     def __init__(self, **config):
         """Set up the Google AI client with a project ID."""
@@ -228,6 +228,9 @@ class GoogleProvider(ProviderInterface):
 
         # Set the temperature if provided, otherwise use the default
         temperature = kwargs.get("temperature", DEFAULT_TEMPERATURE)
+
+        # Set safety_settings if provided
+        safety_settings = kwargs.get("safety_settings")
 
         # Convert messages to Vertex AI format
         message_history = self.transformer.convert_request(messages)
@@ -274,6 +277,7 @@ class GoogleProvider(ProviderInterface):
             model,
             generation_config=GenerationConfig(temperature=temperature),
             tools=tools,
+            safety_settings=safety_settings
         )
 
         if ENABLE_DEBUG_MESSAGES:
