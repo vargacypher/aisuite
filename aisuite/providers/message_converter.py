@@ -13,6 +13,8 @@ class OpenAICompliantMessageConverter:
     @staticmethod
     def convert_request(messages):
         """Convert messages to OpenAI-compatible format."""
+        print("Converting messages to OpenAI-compatible format")
+        print(messages)
         transformed_messages = []
         for message in messages:
             tmsg = None
@@ -33,6 +35,8 @@ class OpenAICompliantMessageConverter:
                         tmsg.content = str(tmsg.content)
 
             transformed_messages.append(tmsg)
+        print("Transformed messages")
+        print(transformed_messages)
         return transformed_messages
 
     @staticmethod
