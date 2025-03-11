@@ -1,21 +1,16 @@
-"""The interface to Google's Vertex AI."""
+"""The interface to Google's Genai."""
 
 import os
 import json
 from typing import List, Dict, Any, Optional
 
-import vertexai
-from vertexai.generative_models import (
-    GenerativeModel,
-    GenerationConfig,
-    Content,
-    Part,
-    Tool,
-    FunctionDeclaration,
-)
+from google import genai
+from google.genai import types
+from google.genai.types import Content, Part, Tool, FunctionDeclaration
+
 import pprint
 
-from aisuite.framework import ProviderInterface, ChatCompletionResponse, Message
+from aisuite.framework import  ChatCompletionResponse, Message
 
 
 DEFAULT_TEMPERATURE = 0.7
@@ -30,7 +25,7 @@ class GoogleMessageConverter:
     @staticmethod
     def convert_user_role_message(message: Dict[str, Any]) -> Content:
         """Convert user or system messages to Google Vertex AI format."""
-        parts = [Part.from_text(message["content"])]
+        parts = [Part.from_text(text=message["content"])]
         return Content(role="user", parts=parts)
 
     @staticmethod
@@ -45,19 +40,16 @@ class GoogleMessageConverter:
 
             # Create a Part from the function call
             parts = [
-                Part.from_dict(
-                    {
-                        "function_call": {
-                            "name": function_call["name"],
-                            # "arguments": json.loads(function_call["arguments"])
-                        }
-                    }
+                Part.from_function_call(
+                    name=function_call["name"],
+                    args={},
+                    # arguments = json.loads(function_call["arguments"])
                 )
             ]
             # return Content(role="function", parts=parts)
         else:
             # Handle regular text messages
-            parts = [Part.from_text(message["content"])]
+            parts = [Part.from_text(text=message["content"])]
             # return Content(role="model", parts=parts)
 
         return Content(role="model", parts=parts)
@@ -189,8 +181,8 @@ class GoogleMessageConverter:
         return openai_response
 
 
-class GoogleProvider(ProviderInterface):
-    """Implements the ProviderInterface for interacting with Google's Vertex AI."""
+class GoogleProvider:
+    """Implements the Provider Interface for interacting with Google's Vertex AI."""
 
     def __init__(self, **config):
         """Set up the Google AI client with a project ID."""
@@ -199,6 +191,8 @@ class GoogleProvider(ProviderInterface):
         self.app_creds_path = config.get("application_credentials") or os.getenv(
             "GOOGLE_APPLICATION_CREDENTIALS"
         )
+        self.api_key = config.get("api_key") or os.getenv("GEMINI_API_KEY")
+        self.vertexai_option = config.get("vertexai_option")
 
         if not self.project_id or not self.location or not self.app_creds_path:
             raise EnvironmentError(
@@ -207,7 +201,12 @@ class GoogleProvider(ProviderInterface):
                 "Please refer to the setup guide: /guides/google.md."
             )
 
-        vertexai.init(project=self.project_id, location=self.location)
+        self.client = genai.Client(
+            project=self.project_id,
+            location=self.location,
+            vertexai=self.vertexai_option,
+            api_key=self.api_key,
+        )
 
         self.transformer = GoogleMessageConverter()
 
@@ -228,6 +227,9 @@ class GoogleProvider(ProviderInterface):
 
         # Set the temperature if provided, otherwise use the default
         temperature = kwargs.get("temperature", DEFAULT_TEMPERATURE)
+
+        # Set safety_settings if provided
+        safety_settings = kwargs.get("safety_settings")
 
         # Convert messages to Vertex AI format
         message_history = self.transformer.convert_request(messages)
@@ -269,19 +271,18 @@ class GoogleProvider(ProviderInterface):
                 )
             ]
 
-        # Create the GenerativeModel
-        model = GenerativeModel(
-            model,
-            generation_config=GenerationConfig(temperature=temperature),
-            tools=tools,
-        )
-
         if ENABLE_DEBUG_MESSAGES:
             print("Dumping the message_history")
             pprint.pprint(message_history)
 
         # Start chat and get response
-        chat = model.start_chat(history=message_history[:-1])
+        chat = self.client.chats.create(
+            model=model,
+            history=message_history[:-1],
+            config=types.GenerateContentConfig(
+                tools=tools, temperature=temperature, safety_settings=safety_settings
+            ),
+        )
         last_message = message_history[-1]
 
         # If the last message is a function response, send the Part object directly
